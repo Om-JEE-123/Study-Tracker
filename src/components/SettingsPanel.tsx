@@ -129,15 +129,24 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="performance" className="flex items-center">
+            <TabsTrigger
+              value="performance"
+              className="flex items-center relative z-10"
+            >
               <Cpu className="h-4 w-4 mr-2" />
               Performance
             </TabsTrigger>
-            <TabsTrigger value="storage" className="flex items-center">
+            <TabsTrigger
+              value="storage"
+              className="flex items-center relative z-10"
+            >
               <Database className="h-4 w-4 mr-2" />
               Storage
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center">
+            <TabsTrigger
+              value="security"
+              className="flex items-center relative z-10"
+            >
               <Shield className="h-4 w-4 mr-2" />
               Security
             </TabsTrigger>

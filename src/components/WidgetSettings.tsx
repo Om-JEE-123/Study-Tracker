@@ -120,10 +120,10 @@ const WidgetSettings: React.FC<WidgetSettingsProps> = ({
       <CardContent>
         <Tabs defaultValue="appearance" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="appearance">
+            <TabsTrigger value="appearance" className="relative z-10">
               <Palette size={16} className="mr-2" /> Appearance
             </TabsTrigger>
-            <TabsTrigger value="behavior">
+            <TabsTrigger value="behavior" className="relative z-10">
               <Move size={16} className="mr-2" /> Behavior
             </TabsTrigger>
           </TabsList>

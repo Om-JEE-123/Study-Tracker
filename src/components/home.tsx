@@ -11,8 +11,42 @@ const Home: React.FC = () => {
     mode: "pomodoro",
   });
 
-  // We don't need timer functionality here since it's handled in MainInterface
-  // This component just passes the timer state to MainInterface and FloatingWidget
+  // Timer functionality is handled here to ensure synchronization
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    if (timerState.isRunning) {
+      intervalId = setInterval(() => {
+        setTimerState((prev) => {
+          // For pomodoro and countdown, decrease time
+          if (
+            (prev.mode === "pomodoro" || prev.mode === "countdown") &&
+            prev.currentTime > 0
+          ) {
+            return { ...prev, currentTime: prev.currentTime - 1 };
+          }
+          // For stopwatch, increase time
+          else if (prev.mode === "stopwatch") {
+            return { ...prev, currentTime: prev.currentTime + 1 };
+          }
+          // If pomodoro or countdown reaches 0, stop the timer
+          else if (
+            (prev.mode === "pomodoro" || prev.mode === "countdown") &&
+            prev.currentTime <= 0
+          ) {
+            return { ...prev, isRunning: false };
+          }
+          return prev;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [timerState.isRunning, timerState.mode]);
 
   // These handlers now just pass through to MainInterface
   const handleTimerStart = () => {

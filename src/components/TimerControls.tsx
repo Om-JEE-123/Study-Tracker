@@ -118,15 +118,24 @@ const TimerControls: React.FC<TimerControlsProps> = ({
           onValueChange={(value) => onModeChange(value as any)}
         >
           <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="pomodoro" className="flex items-center gap-1">
+            <TabsTrigger
+              value="pomodoro"
+              className="flex items-center gap-1 relative z-10"
+            >
               <Timer className="h-4 w-4" />
               <span>Pomodoro</span>
             </TabsTrigger>
-            <TabsTrigger value="stopwatch" className="flex items-center gap-1">
+            <TabsTrigger
+              value="stopwatch"
+              className="flex items-center gap-1 relative z-10"
+            >
               <Clock className="h-4 w-4" />
               <span>Stopwatch</span>
             </TabsTrigger>
-            <TabsTrigger value="countdown" className="flex items-center gap-1">
+            <TabsTrigger
+              value="countdown"
+              className="flex items-center gap-1 relative z-10"
+            >
               <Timer className="h-4 w-4" />
               <span>Countdown</span>
             </TabsTrigger>

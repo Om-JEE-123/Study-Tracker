@@ -134,9 +134,15 @@ const TimeMetricsChart: React.FC<TimeMetricsChartProps> = ({
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="daily">Daily</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly</TabsTrigger>
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            <TabsTrigger value="daily" className="relative z-10">
+              Daily
+            </TabsTrigger>
+            <TabsTrigger value="weekly" className="relative z-10">
+              Weekly
+            </TabsTrigger>
+            <TabsTrigger value="monthly" className="relative z-10">
+              Monthly
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="daily" className="h-[250px]">

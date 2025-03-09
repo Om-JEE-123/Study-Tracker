@@ -90,8 +90,12 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="overview">Time Overview</TabsTrigger>
-          <TabsTrigger value="goals">Study Goals</TabsTrigger>
+          <TabsTrigger value="overview" className="relative z-10">
+            Time Overview
+          </TabsTrigger>
+          <TabsTrigger value="goals" className="relative z-10">
+            Study Goals
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">

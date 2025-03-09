@@ -285,15 +285,15 @@ const TaskManager: React.FC<TaskManagerProps> = ({
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="subjects">
+            <TabsTrigger value="subjects" className="relative z-10">
               <BookOpen className="mr-2 h-4 w-4" />
               Subjects
             </TabsTrigger>
-            <TabsTrigger value="tasks">
+            <TabsTrigger value="tasks" className="relative z-10">
               <Clock className="mr-2 h-4 w-4" />
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="tags">
+            <TabsTrigger value="tags" className="relative z-10">
               <Tag className="mr-2 h-4 w-4" />
               Tags
             </TabsTrigger>

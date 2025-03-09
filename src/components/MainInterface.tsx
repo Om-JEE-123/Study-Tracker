@@ -91,7 +91,11 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
       timeSpent: number;
       isActive: boolean;
     }>
-  >([]);
+  >(() => {
+    // Load categories from localStorage if available
+    const savedCategories = localStorage.getItem("studyCategories");
+    return savedCategories ? JSON.parse(savedCategories) : [];
+  });
   const [tags, setTags] = useState([
     { id: "1", name: "Important", color: "#ef4444" },
     { id: "2", name: "Urgent", color: "#f97316" },
@@ -122,47 +126,30 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
 
     if (timerState.isRunning) {
       intervalId = setInterval(() => {
-        // Update the main timer
-        setTimerState((prev) => {
-          // For pomodoro and countdown, decrease time
-          if (
-            (prev.mode === "pomodoro" || prev.mode === "countdown") &&
-            prev.currentTime > 0
-          ) {
-            return { ...prev, currentTime: prev.currentTime - 1 };
-          }
-          // For stopwatch, increase time
-          else if (prev.mode === "stopwatch") {
-            return { ...prev, currentTime: prev.currentTime + 1 };
-          }
-          // If pomodoro or countdown reaches 0, stop the timer
-          else if (
-            (prev.mode === "pomodoro" || prev.mode === "countdown") &&
-            prev.currentTime <= 0
-          ) {
-            return { ...prev, isRunning: false };
-          }
-          return prev;
-        });
-
         // Also update the active category's time
         if (selectedCategory) {
-          setCategories((prevCategories) =>
-            prevCategories.map((cat) =>
-              cat.id === selectedCategory && cat.isActive
-                ? { ...cat, timeSpent: cat.timeSpent + 1 }
-                : cat,
-            ),
+          const updatedCategories = categories.map((cat) =>
+            cat.id === selectedCategory && cat.isActive
+              ? { ...cat, timeSpent: cat.timeSpent + 1 }
+              : cat,
+          );
+          setCategories(updatedCategories);
+          localStorage.setItem(
+            "studyCategories",
+            JSON.stringify(updatedCategories),
           );
         }
       }, 1000);
     } else {
       // When timer is paused, also update the active category status
       if (selectedCategory) {
-        setCategories((prevCategories) =>
-          prevCategories.map((cat) =>
-            cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
-          ),
+        const updatedCategories = categories.map((cat) =>
+          cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
+        );
+        setCategories(updatedCategories);
+        localStorage.setItem(
+          "studyCategories",
+          JSON.stringify(updatedCategories),
         );
       }
     }
@@ -172,7 +159,7 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
         clearInterval(intervalId);
       }
     };
-  }, [timerState.isRunning, timerState.mode, selectedCategory]);
+  }, [timerState.isRunning, selectedCategory, categories]);
 
   const handleTimerStart = () => {
     // Call the external handler if provided
@@ -184,10 +171,13 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
 
     // When timer is started, also update the active category status
     if (selectedCategory) {
-      setCategories((prevCategories) =>
-        prevCategories.map((cat) =>
-          cat.id === selectedCategory ? { ...cat, isActive: true } : cat,
-        ),
+      const updatedCategories = categories.map((cat) =>
+        cat.id === selectedCategory ? { ...cat, isActive: true } : cat,
+      );
+      setCategories(updatedCategories);
+      localStorage.setItem(
+        "studyCategories",
+        JSON.stringify(updatedCategories),
       );
     }
   };
@@ -202,10 +192,13 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
 
     // When timer is paused, also update the active category status
     if (selectedCategory) {
-      setCategories((prevCategories) =>
-        prevCategories.map((cat) =>
-          cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
-        ),
+      const updatedCategories = categories.map((cat) =>
+        cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
+      );
+      setCategories(updatedCategories);
+      localStorage.setItem(
+        "studyCategories",
+        JSON.stringify(updatedCategories),
       );
     }
   };
@@ -224,10 +217,13 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
 
     // When timer is reset, also update the active category status
     if (selectedCategory) {
-      setCategories((prevCategories) =>
-        prevCategories.map((cat) =>
-          cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
-        ),
+      const updatedCategories = categories.map((cat) =>
+        cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
+      );
+      setCategories(updatedCategories);
+      localStorage.setItem(
+        "studyCategories",
+        JSON.stringify(updatedCategories),
       );
     }
   };
@@ -253,41 +249,55 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
     // If clicking the same active category, pause it instead of resetting
     if (selectedCategory === categoryId && isAlreadyActive) {
       // Pause the timer
-      setTimerState((prev) => ({ ...prev, isRunning: false }));
+      if (externalSetTimerState) {
+        onTimerPause();
+      } else {
+        setTimerState((prev) => ({ ...prev, isRunning: false }));
+      }
 
       // Update category status
-      setCategories((prevCategories) =>
-        prevCategories.map((cat) =>
-          cat.id === categoryId ? { ...cat, isActive: false } : cat,
-        ),
+      const updatedCategories = categories.map((cat) =>
+        cat.id === categoryId ? { ...cat, isActive: false } : cat,
+      );
+      setCategories(updatedCategories);
+      localStorage.setItem(
+        "studyCategories",
+        JSON.stringify(updatedCategories),
       );
       return;
     }
 
     // If we're switching from one active category to another, first deactivate the current one
     if (selectedCategory && selectedCategory !== categoryId) {
-      setCategories((prevCategories) =>
-        prevCategories.map((cat) =>
-          cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
-        ),
+      const updatedCategories = categories.map((cat) =>
+        cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
+      );
+      setCategories(updatedCategories);
+      localStorage.setItem(
+        "studyCategories",
+        JSON.stringify(updatedCategories),
       );
     }
 
     // Start timer for the selected category
-    setCategories((prevCategories) =>
-      prevCategories.map((cat) =>
-        cat.id === categoryId ? { ...cat, isActive: true } : cat,
-      ),
+    const updatedCategories = categories.map((cat) =>
+      cat.id === categoryId ? { ...cat, isActive: true } : cat,
     );
+    setCategories(updatedCategories);
+    localStorage.setItem("studyCategories", JSON.stringify(updatedCategories));
     setSelectedCategory(categoryId);
 
     // Start the timer when a category is selected
     if (timerState.mode === "stopwatch") {
       // Always resume the timer, never reset it
-      setTimerState((prev) => ({
-        ...prev,
-        isRunning: true,
-      }));
+      if (externalSetTimerState) {
+        onTimerStart();
+      } else {
+        setTimerState((prev) => ({
+          ...prev,
+          isRunning: true,
+        }));
+      }
     }
   };
 
@@ -301,24 +311,39 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
     const newCategory = {
       ...category,
       id: `category-${Date.now()}`,
+      timeSpent: 0,
+      isActive: false,
     };
-    setCategories([...categories, newCategory]);
+    const updatedCategories = [...categories, newCategory];
+    setCategories(updatedCategories);
+    localStorage.setItem("studyCategories", JSON.stringify(updatedCategories));
   };
 
   const handleUpdateCategory = (updatedCategory: {
     id: string;
     name: string;
     color?: string;
+    timeSpent?: number;
+    isActive?: boolean;
   }) => {
-    setCategories(
-      categories.map((cat) =>
-        cat.id === updatedCategory.id ? updatedCategory : cat,
-      ),
+    const updatedCategories = categories.map((cat) =>
+      cat.id === updatedCategory.id
+        ? {
+            ...cat,
+            ...updatedCategory,
+            timeSpent: updatedCategory.timeSpent ?? cat.timeSpent,
+            isActive: updatedCategory.isActive ?? cat.isActive,
+          }
+        : cat,
     );
+    setCategories(updatedCategories);
+    localStorage.setItem("studyCategories", JSON.stringify(updatedCategories));
   };
 
   const handleDeleteCategory = (categoryId: string) => {
-    setCategories(categories.filter((cat) => cat.id !== categoryId));
+    const updatedCategories = categories.filter((cat) => cat.id !== categoryId);
+    setCategories(updatedCategories);
+    localStorage.setItem("studyCategories", JSON.stringify(updatedCategories));
     if (selectedCategory === categoryId) {
       setSelectedCategory(null);
     }
@@ -392,10 +417,18 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
 
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-4 mb-8">
-          <TabsTrigger value="timer">Timer</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="timer" className="relative z-10">
+            Timer
+          </TabsTrigger>
+          <TabsTrigger value="tasks" className="relative z-10">
+            Tasks
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="relative z-10">
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="relative z-10">
+            Settings
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="timer" className="space-y-6">
