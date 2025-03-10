@@ -107,7 +107,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   return (
     <Card className="w-full bg-white">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Timer Controls</CardTitle>
+        <CardTitle className="text-xl font-bold">Timer</CardTitle>
         <CardDescription>
           Choose a timer mode and configure settings
         </CardDescription>
@@ -120,23 +120,6 @@ const TimerControls: React.FC<TimerControlsProps> = ({
           <div className="text-center py-6 bg-gray-50 rounded-md mb-4">
             <div className="text-4xl font-mono font-bold">
               {formatTime(currentTime)}
-            </div>
-            <div className="text-sm text-gray-500 mt-1">
-              {isRunning ? "Running" : "Ready"}
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium">
-                Auto-pause when idle
-              </label>
-              <Switch
-                checked={generalSettings.autoPause}
-                onCheckedChange={(checked) =>
-                  handleGeneralSettingsChange("autoPause", checked)
-                }
-              />
             </div>
           </div>
         </div>
