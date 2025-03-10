@@ -107,14 +107,13 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   return (
     <Card className="w-full bg-white">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Timer</CardTitle>
-        <CardDescription>
-          Choose a timer mode and configure settings
-        </CardDescription>
+        <h4 className="text-xl font-semibold tracking-tight">
+          {" "}
+          Today's total time:
+        </h4>
       </CardHeader>
       <CardContent>
         {/* Only using stopwatch mode */}
-
         {/* Only Stopwatch Settings */}
         <div className="space-y-4">
           <div className="text-center py-6 bg-gray-50 rounded-md mb-4">
@@ -124,88 +123,9 @@ const TimerControls: React.FC<TimerControlsProps> = ({
           </div>
         </div>
         {/* End of stopwatch settings */}
-
         {/* Common Controls */}
-        <div className="flex justify-center space-x-4 mt-6">
-          {!isRunning ? (
-            <Button
-              onClick={onStart}
-              className="flex items-center gap-2"
-              size="lg"
-            >
-              <Play className="h-4 w-4" />
-              <span>Start</span>
-            </Button>
-          ) : (
-            <Button
-              onClick={onPause}
-              variant="outline"
-              className="flex items-center gap-2"
-              size="lg"
-            >
-              <Pause className="h-4 w-4" />
-              <span>Pause</span>
-            </Button>
-          )}
-          <Button
-            onClick={onReset}
-            variant="outline"
-            className="flex items-center gap-2"
-            size="lg"
-          >
-            <RotateCcw className="h-4 w-4" />
-            <span>Reset</span>
-          </Button>
-        </div>
 
         {/* General Settings */}
-        <div className="mt-6 pt-4 border-t">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium flex items-center gap-1">
-              <Settings className="h-4 w-4" />
-              <span>General Settings</span>
-            </h3>
-          </div>
-          <div className="mt-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm">Sound Notifications</label>
-              <Switch
-                checked={generalSettings.soundEnabled}
-                onCheckedChange={(checked) =>
-                  handleGeneralSettingsChange("soundEnabled", checked)
-                }
-              />
-            </div>
-            {generalSettings.soundEnabled && (
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm">Volume</label>
-                  <span className="text-xs text-gray-500">
-                    {generalSettings.soundVolume}%
-                  </span>
-                </div>
-                <Slider
-                  value={[generalSettings.soundVolume]}
-                  min={0}
-                  max={100}
-                  step={1}
-                  onValueChange={(value) =>
-                    handleGeneralSettingsChange("soundVolume", value[0])
-                  }
-                />
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <label className="text-sm">Auto-pause when idle</label>
-              <Switch
-                checked={generalSettings.autoPause}
-                onCheckedChange={(checked) =>
-                  handleGeneralSettingsChange("autoPause", checked)
-                }
-              />
-            </div>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );
