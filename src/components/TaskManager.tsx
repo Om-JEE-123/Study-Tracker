@@ -393,8 +393,9 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                         onClick={() => handleCategorySelect(category.id)}
                       >
                         <div
-                          className="w-8 h-8 rounded-full mr-3 flex items-center justify-center text-white"
+                          className="w-8 h-8 rounded-full mr-3 flex items-center justify-center text-white cursor-pointer"
                           style={{ backgroundColor: category.color }}
+                          onClick={() => handleCategorySelect(category.id)}
                         >
                           {category.isActive ? (
                             <Pause size={16} />
@@ -423,8 +424,19 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="font-mono">
-                          {formatTime(category.timeSpent || 0)}
+                          Today: {formatTime(category.timeSpent || 0)}
                         </span>
+                        <Button
+                          variant={category.isActive ? "outline" : "default"}
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCategorySelect(category.id);
+                          }}
+                        >
+                          {category.isActive ? "Pause" : "Start"}
+                        </Button>
                         {editingCategoryId === category.id ? (
                           <Button
                             variant="ghost"

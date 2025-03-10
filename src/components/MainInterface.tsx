@@ -7,6 +7,7 @@ import AnalyticsDashboard from "./AnalyticsDashboard";
 import SettingsPanel from "./SettingsPanel";
 import WidgetSettings from "./WidgetSettings";
 import ThemeToggle from "./ThemeToggle";
+import SessionsManager from "./SessionsManager";
 
 // Helper function to format time
 const formatTime = (timeInSeconds: number) => {
@@ -83,6 +84,17 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
       status: "completed" | "inProgress" | "incomplete";
     }>
   >([]);
+
+  const [sessions, setSessions] = useState<
+    Array<{
+      id: string;
+      categoryId: string;
+      startTime: string;
+      endTime: string;
+      duration: number;
+      date: string;
+    }>
+  >([]);
   const [categories, setCategories] = useState<
     Array<{
       id: string;
@@ -104,21 +116,57 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
     { id: "5", name: "Quick Task", color: "#10b981" },
   ]);
 
-  // Effect to reset tasks at midnight
+  // Effect to reset data at midnight
   useEffect(() => {
-    // Function to check if it's midnight and reset tasks
-    const resetTasksAtMidnight = () => {
+    // Function to check if it's midnight and reset data
+    const resetDataAtMidnight = () => {
       const now = new Date();
-      if (now.getHours() === 0 && now.getMinutes() === 0) {
+      const lastResetDate = localStorage.getItem("lastResetDate");
+      const today = now.toDateString();
+
+      // Check if we've already reset today
+      if (lastResetDate !== today && now.getHours() === 0) {
+        console.log("Resetting data at midnight");
+
+        // Reset tasks
         setTasks([]);
+
+        // Reset timer data
+        if (externalSetTimerState) {
+          onTimerReset();
+        } else {
+          setTimerState((prev) => ({
+            ...prev,
+            isRunning: false,
+            currentTime: 0, // Always reset to 0 for stopwatch
+          }));
+        }
+
+        // Reset category time data but keep names
+        const resetCategories = categories.map((cat) => ({
+          ...cat,
+          timeSpent: 0,
+          isActive: false,
+        }));
+        setCategories(resetCategories);
+        localStorage.setItem(
+          "studyCategories",
+          JSON.stringify(resetCategories),
+        );
+
+        // Save the reset date
+        localStorage.setItem("lastResetDate", today);
       }
     };
 
+    // Initial check on component mount
+    resetDataAtMidnight();
+
     // Check every minute
-    const intervalId = setInterval(resetTasksAtMidnight, 60000);
+    const intervalId = setInterval(resetDataAtMidnight, 60000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [categories, externalSetTimerState, onTimerReset]);
 
   // Add timer effect to MainInterface as well
   useEffect(() => {
@@ -211,34 +259,23 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
       setTimerState((prev) => ({
         ...prev,
         isRunning: false,
-        currentTime: prev.mode === "pomodoro" ? 1500 : 0,
+        currentTime: 0, // Always reset to 0 for stopwatch
       }));
     }
 
-    // When timer is reset, also update the active category status
-    if (selectedCategory) {
-      const updatedCategories = categories.map((cat) =>
-        cat.id === selectedCategory ? { ...cat, isActive: false } : cat,
-      );
-      setCategories(updatedCategories);
-      localStorage.setItem(
-        "studyCategories",
-        JSON.stringify(updatedCategories),
-      );
-    }
+    // Reset ALL categories' time and status, not just the active one
+    const updatedCategories = categories.map((cat) => ({
+      ...cat,
+      isActive: false,
+      timeSpent: 0,
+    }));
+    setCategories(updatedCategories);
+    localStorage.setItem("studyCategories", JSON.stringify(updatedCategories));
   };
 
-  const handleModeChange = (mode: "pomodoro" | "stopwatch" | "countdown") => {
-    // Call the external handler if provided
-    if (externalSetTimerState) {
-      onModeChange(mode);
-    } else {
-      setTimerState({
-        isRunning: false,
-        currentTime: mode === "pomodoro" ? 1500 : 0,
-        mode,
-      });
-    }
+  // No longer need mode change since we only use stopwatch
+  const handleModeChange = () => {
+    // Keep stopwatch mode only
   };
 
   const handleCategorySelect = (categoryId: string) => {
@@ -308,6 +345,29 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
   const handleCreateCategory = (
     category: Omit<{ id: string; name: string; color?: string }, "id">,
   ) => {
+    // Check if a category with this name already exists
+    const existingCategory = categories.find(
+      (cat) => cat.name.toLowerCase() === category.name.toLowerCase(),
+    );
+
+    if (existingCategory) {
+      // If it exists, just update the color if needed
+      if (category.color && category.color !== existingCategory.color) {
+        const updatedCategories = categories.map((cat) =>
+          cat.id === existingCategory.id
+            ? { ...cat, color: category.color }
+            : cat,
+        );
+        setCategories(updatedCategories);
+        localStorage.setItem(
+          "studyCategories",
+          JSON.stringify(updatedCategories),
+        );
+      }
+      return;
+    }
+
+    // Otherwise create a new category
     const newCategory = {
       ...category,
       id: `category-${Date.now()}`,
@@ -400,6 +460,60 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
     setTasks(tasks.filter((task) => task.id !== taskId));
   };
 
+  const handleAddSession = (
+    session: Omit<
+      {
+        id: string;
+        categoryId: string;
+        startTime: string;
+        endTime: string;
+        duration: number;
+        date: string;
+      },
+      "id"
+    >,
+  ) => {
+    const newSession = {
+      ...session,
+      id: `session-${Date.now()}`,
+    };
+    setSessions([...sessions, newSession]);
+
+    // Also update the category's time spent
+    const updatedCategories = categories.map((cat) =>
+      cat.id === session.categoryId
+        ? { ...cat, timeSpent: (cat.timeSpent || 0) + session.duration }
+        : cat,
+    );
+    setCategories(updatedCategories);
+    localStorage.setItem("studyCategories", JSON.stringify(updatedCategories));
+  };
+
+  const handleDeleteSession = (sessionId: string) => {
+    const sessionToDelete = sessions.find((s) => s.id === sessionId);
+    if (sessionToDelete) {
+      // Remove the session's duration from the category's time spent
+      const updatedCategories = categories.map((cat) =>
+        cat.id === sessionToDelete.categoryId
+          ? {
+              ...cat,
+              timeSpent: Math.max(
+                0,
+                (cat.timeSpent || 0) - sessionToDelete.duration,
+              ),
+            }
+          : cat,
+      );
+      setCategories(updatedCategories);
+      localStorage.setItem(
+        "studyCategories",
+        JSON.stringify(updatedCategories),
+      );
+    }
+
+    setSessions(sessions.filter((session) => session.id !== sessionId));
+  };
+
   return (
     <div className="w-full h-full bg-white p-6 overflow-auto">
       <div className="flex justify-between items-center mb-6">
@@ -420,8 +534,8 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
           <TabsTrigger value="timer" className="relative z-10">
             Timer
           </TabsTrigger>
-          <TabsTrigger value="tasks" className="relative z-10">
-            Tasks
+          <TabsTrigger value="sessions" className="relative z-10">
+            Sessions
           </TabsTrigger>
           <TabsTrigger value="analytics" className="relative z-10">
             Analytics
@@ -462,23 +576,11 @@ const MainInterface: React.FC<MainInterfaceProps> = ({
           </div>
         </TabsContent>
 
-        <TabsContent value="tasks" className="space-y-6">
-          <TaskManager
+        <TabsContent value="sessions" className="space-y-6">
+          <SessionsManager
             categories={categories}
-            tags={tags}
-            tasks={tasks}
-            onSelectCategory={handleCategorySelect}
-            onSelectTags={handleTagsSelect}
-            onCreateCategory={handleCreateCategory}
-            onUpdateCategory={handleUpdateCategory}
-            onDeleteCategory={handleDeleteCategory}
-            onCreateTag={handleCreateTag}
-            onUpdateTag={handleUpdateTag}
-            onDeleteTag={handleDeleteTag}
-            onCreateTask={handleCreateTask}
-            onUpdateTask={handleUpdateTask}
-            onDeleteTask={handleDeleteTask}
-            onStartTimer={handleCategorySelect}
+            onAddSession={handleAddSession}
+            onDeleteSession={handleDeleteSession}
           />
         </TabsContent>
 

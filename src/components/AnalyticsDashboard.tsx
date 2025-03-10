@@ -62,29 +62,21 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           title="Total Study Time"
           value={formatTime(userData.totalStudyTime)}
           icon={<Clock />}
-          trend="+12% from last month"
-          trendUp={true}
         />
         <StatCard
           title="Sessions Completed"
           value={userData.sessionsCompleted.toString()}
           icon={<Calendar />}
-          trend="+5 from last week"
-          trendUp={true}
         />
         <StatCard
           title="Avg. Session Length"
           value={formatTime(userData.averageSessionLength)}
           icon={<BarChart2 />}
-          trend="-8% from last month"
-          trendUp={false}
         />
         <StatCard
           title="Most Productive Day"
           value={userData.mostProductiveDay}
           icon={<PieChart />}
-          trend="Same as last month"
-          trendUp={null}
         />
       </div>
 
@@ -114,17 +106,9 @@ interface StatCardProps {
   title: string;
   value: string;
   icon: React.ReactNode;
-  trend?: string;
-  trendUp?: boolean | null;
 }
 
-const StatCard: React.FC<StatCardProps> = ({
-  title,
-  value,
-  icon,
-  trend,
-  trendUp,
-}) => {
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => {
   return (
     <Card className="bg-white">
       <CardContent className="p-6">
@@ -132,19 +116,6 @@ const StatCard: React.FC<StatCardProps> = ({
           <div>
             <p className="text-sm font-medium text-gray-500">{title}</p>
             <h3 className="text-2xl font-bold mt-1">{value}</h3>
-            {trend && (
-              <p
-                className={`text-xs mt-1 ${
-                  trendUp === true
-                    ? "text-green-500"
-                    : trendUp === false
-                      ? "text-red-500"
-                      : "text-gray-500"
-                }`}
-              >
-                {trend}
-              </p>
-            )}
           </div>
           <div className="p-3 bg-gray-100 rounded-full">{icon}</div>
         </div>

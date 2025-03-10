@@ -5,10 +5,16 @@ import FloatingWidget from "./FloatingWidget";
 const Home: React.FC = () => {
   const [isWidgetVisible, setIsWidgetVisible] = useState(true);
   const [activeTab, setActiveTab] = useState("timer");
+  // If the user clicks on the tasks tab, redirect to timer tab
+  useEffect(() => {
+    if (activeTab === "tasks") {
+      setActiveTab("timer");
+    }
+  }, [activeTab]);
   const [timerState, setTimerState] = useState({
     isRunning: false,
-    currentTime: 1500, // 25 minutes in seconds
-    mode: "pomodoro",
+    currentTime: 0, // Start at 0 for stopwatch
+    mode: "stopwatch",
   });
 
   // Timer functionality is handled here to ensure synchronization
@@ -48,6 +54,34 @@ const Home: React.FC = () => {
     };
   }, [timerState.isRunning, timerState.mode]);
 
+  // Effect to check for midnight reset
+  useEffect(() => {
+    const checkMidnightReset = () => {
+      const now = new Date();
+      const lastResetDate = localStorage.getItem("lastResetDate");
+      const today = now.toDateString();
+
+      // If it's a new day and we haven't reset yet
+      if (lastResetDate !== today && now.getHours() === 0) {
+        // Reset timer
+        setTimerState({
+          isRunning: false,
+          currentTime: 0, // Always reset to 0 for stopwatch
+          mode: "stopwatch",
+        });
+
+        // Mark as reset for today
+        localStorage.setItem("lastResetDate", today);
+      }
+    };
+
+    // Check on component mount and every minute
+    checkMidnightReset();
+    const intervalId = setInterval(checkMidnightReset, 60000);
+
+    return () => clearInterval(intervalId);
+  }, [timerState.mode]);
+
   // These handlers now just pass through to MainInterface
   const handleTimerStart = () => {
     setTimerState((prev) => ({ ...prev, isRunning: true }));
@@ -61,16 +95,28 @@ const Home: React.FC = () => {
     setTimerState((prev) => ({
       ...prev,
       isRunning: false,
-      currentTime: prev.mode === "pomodoro" ? 1500 : 0,
+      currentTime: 0, // Always reset to 0 for stopwatch
     }));
+
+    // Reset ALL categories' time in localStorage, not just active ones
+    const savedCategories = localStorage.getItem("studyCategories");
+    if (savedCategories) {
+      const categories = JSON.parse(savedCategories);
+      const updatedCategories = categories.map((cat) => ({
+        ...cat,
+        timeSpent: 0,
+        isActive: false,
+      }));
+      localStorage.setItem(
+        "studyCategories",
+        JSON.stringify(updatedCategories),
+      );
+    }
   };
 
-  const handleModeChange = (mode: "pomodoro" | "stopwatch" | "countdown") => {
-    setTimerState({
-      isRunning: false,
-      currentTime: mode === "pomodoro" ? 1500 : 0,
-      mode,
-    });
+  // No longer need mode change since we only use stopwatch
+  const handleModeChange = () => {
+    // Keep stopwatch mode only
   };
 
   const toggleWidget = () => {

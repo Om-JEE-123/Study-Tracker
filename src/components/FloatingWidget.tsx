@@ -113,20 +113,10 @@ const FloatingWidget: React.FC<FloatingWidgetProps> = ({
     // Apply other settings as needed
   };
 
-  // Get status text based on mode and running state
+  // Get status text based on running state
   const getStatusText = () => {
     if (!isRunning) return "Ready";
-
-    switch (mode) {
-      case "pomodoro":
-        return "Focus Time";
-      case "stopwatch":
-        return "Tracking";
-      case "countdown":
-        return "Counting Down";
-      default:
-        return "Running";
-    }
+    return "Tracking";
   };
 
   return (
